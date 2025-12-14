@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configure Dashboard</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+    }
+    .topbar {
+      padding: 20px;
+      display: flex;
+      gap: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .back {
+      font-size: 22px;
+      cursor: pointer;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      height: calc(100vh - 70px);
+    }
+    .side {
+      padding: 20px;
+      border-right: 1px solid #eee;
+    }
+    .dropdown, .widget-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 6px;
+      background: #f7f7f7;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .grid-area {
+      background: repeating-linear-gradient(0deg,#eee,#eee 5px,#fff 5px,#fff 25px),
+                  repeating-linear-gradient(90deg,#eee,#eee 5px,#fff 5px,#fff 25px);
+    }
+    .footer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 18px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+    .cancel {
+      border: 1px solid #ddd;
+      background: #fff;
+    }
+    .save {
+      background: #2ecc71;
+      color: #fff;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="back" onclick="window.location.href='main.html'">←</div>
+  <div>
+    <h3>Configure dashboard</h3>
+    <p>Configure your dashboard to start viewing analytics</p>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div class="side">
+    <p>View Data For</p>
+    <div class="dropdown">All time ⌄</div>
+
+    <p style="margin-top:20px;">Widget library</p>
+    <small>Drag and drop your canvas</small>
+
+    <div class="widget-btn">Charts ›</div>
+    <div class="widget-btn">Tables ›</div>
+    <div class="widget-btn">KPIs ›</div>
+  </div>
+
+  <div class="grid-area"></div>
+</div>
+
+<div class="footer">
+  <button class="cancel" onclick="window.location.href='main.html'">Cancel</button>
+  <button class="save" onclick="window.location.href='configure-advanced.html'">Save</button>
+</div>
+
+</body>
+</html>

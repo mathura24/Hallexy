@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Configure Dashboard</title>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:Inter,sans-serif; }
+
+body { background:white; }
+
+/* Topbar */
+.topbar {
+  padding:14px 22px;
+  border-bottom:1px solid #e6e6e6;
+  display:flex; align-items:center; gap:12px;
+}
+.topbar h3 { font-size:16px; font-weight:600; }
+.topbar p { font-size:12px; color:#777; margin-top:2px; }
+
+/* Layout */
+.layout {
+  display:grid;
+  grid-template-columns:260px 1fr;
+  height:calc(100vh - 60px);
+}
+
+/* Sidebar */
+.sidebar {
+  border-right:1px solid #e6e6e6;
+  padding:20px;
+  overflow-y:auto;
+}
+
+.label { font-size:13px; color:#444; margin-bottom:4px; }
+.dropdown {
+  border:1px solid #ddd; padding:9px 12px;
+  font-size:13px; border-radius:6px;
+  background:#fafafa; width:100%; margin-bottom:14px;
+}
+
+.section-header {
+  padding:10px 12px; border:1px solid #ddd;
+  background:#f5f5f5; border-radius:6px;
+  font-size:13px; margin-top:15px;
+  display:flex; justify-content:space-between;
+  cursor:pointer;
+  user-select:none;
+}
+
+.section-content {
+  display:block; /* default: expanded */
+}
+.section-content.collapsed {
+  display:none; /* hidden when collapsed */
+}
+
+.section-header span {
+  transition:transform 0.3s ease;
+}
+.section-header.collapsed span {
+  transform:rotate(-90deg); /* arrow points down when expanded, left when collapsed */
+}
+
+.widget-item {
+  border:1px solid #ddd; padding:9px 10px;
+  font-size:13px; border-radius:6px;
+  margin-top:8px; background:#fff; cursor:pointer;
+}
+.widget-item:hover { background:#eef6ff; border-color:#bcd9ff; }
+
+/* Canvas Background */
+.canvas {
+  padding:20px;
+  overflow-y:auto;
+  background-color: #fafafa;
+  /* Use an inline SVG pattern to render repeating small rounded rectangles (pill tiles).
+     Adjusted to match the supplied sample size (wider tiles and slightly shorter height). */
+  background-image: url("data:image/svg+xml;utf8,<svg%20xmlns='http://www.w3.org/2000/svg'%20width='48'%20height='16'><rect%20x='4'%20y='3'%20rx='3'%20ry='3'%20width='40'%20height='10'%20fill='%23ececec'/></svg>");
+  background-repeat: repeat;
+  background-size: 70px 40px; /* tile width x height (tweak these for spacing/size) */
+}
+
+/* KPI Cards */
+.card {
+  width:150px; height:80px;
+  background:white; border:1px solid #e5e5e5;
+  border-radius:14px; padding:14px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.08);
+  margin-bottom:20px;
+  position:relative;
+}
+.card-title { font-size:15px; font-weight:600; color:#333; }
+.card-value { font-size:26px; font-weight:600; margin-top:6px; color:#111; }
+
+.icon-btn {
+  position:absolute;
+  top:10px; width:26px; height:26px;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:6px;
+  cursor:pointer;
+}
+.settings { right:10px; background:#eaf9f1; color:#0a8f43; }
+.delete { right:45px; background:#ffeceb; color:#db1818; }
+
+/* Right Panel */
+.config-panel {
+  position:fixed; top:0; right:-450px; width:450px; height:100vh;
+  background:white; box-shadow:-3px 0 10px rgba(0,0,0,0.15);
+  padding:22px; transition:.35s; z-index:1001; overflow-y:auto;
+}
+.config-panel.open { right:0; }
+
+.overlay {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.35); backdrop-filter:blur(2px);
+  display:none; z-index:1000;
+}
+.overlay.show { display:block; }
+
+/* Modal overlay (for centered dialogs) */
+.modal-overlay {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.28); display:none; z-index:1500;
+}
+.modal-overlay.show { display:block; }
+
+/* Centered modal */
+.modal {
+  position:fixed; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:420px; background:#fff; border-radius:8px; padding:20px 22px;
+  box-shadow:0 20px 50px rgba(10,20,30,0.18); z-index:1600;
+  display:none;
+}
+.modal.show { display:block; }
+.modal h4 { margin-bottom:8px; font-size:16px; }
+.modal p { color:#444; font-size:14px; margin-bottom:18px; }
+.modal .actions { display:flex; gap:10px; justify-content:flex-end; }
+.btn-cancel { background:white; border:1px solid #cfd8dc; padding:8px 14px; border-radius:6px; }
+.btn-delete { background:#47b26b; color:#fff; border:none; padding:8px 14px; border-radius:6px; }
+.modal .close-x { position:absolute; right:12px; top:10px; font-size:14px; color:#777; cursor:pointer; }
+
+label { font-size:13px; margin-top:12px; display:block; color:#555; }
+input, select, textarea {
+  width:100%; padding:10px; border:1px solid #ddd; border-radius:6px;
+  margin-top:4px; font-size:14px;
+}
+
+.footer { margin-top:20px; display:flex; justify-content:flex-end; gap:10px; }
+.btn { padding:8px 18px; border-radius:6px; font-size:13px; cursor:pointer; }
+.cancel { background:white; border:1px solid #ccc; }
+.save { background:#2ecc71; color:white; border:none; }
+
+/* Toast success message */
+.toast {
+  position: fixed;
+  top: 15px;
+  right: 15px;
+  background: #e4f9ec;
+  color: #0a8f43;
+  border: 1px solid #b8e6c8;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  display:flex; align-items:center; gap:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  opacity:0; transform:translateY(-10px);
+  transition:all .4s ease; z-index:2000;
+}
+.toast.show { opacity:1; transform:translateY(0); }
+</style>
+</head>
+
+<body>
+
+<!-- Toast -->
+<div id="toast" class="toast">✔ All set! Your new widget has been added successfully</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closePanel(); closeDeleteModal();"></div>
+
+<!-- Modal overlay and Delete confirmation modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeDeleteModal()"></div>
+<div class="modal" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+  <div class="close-x" onclick="closeDeleteModal()">✕</div>
+  <h4 id="deleteTitle">Delete</h4>
+  <p id="deleteText">Are you sure you want to delete the Untitled widget?</p>
+  <div class="actions">
+    <button class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+    <button class="btn-delete" onclick="performDelete()">Delete</button>
+  </div>
+</div>
+
+<!-- Right Config Panel -->
+<div class="config-panel" id="panel">
+  <h3 style="margin-bottom:14px; font-size:17px;">Widget Configuration</h3>
+
+  <label>Widget Title *</label>
+  <input id="widgetTitle" type="text" value="Untitled">
+
+  <label>Widget Type *</label>
+  <select><option>KPI</option></select>
+
+  <label>Description</label>
+  <textarea rows="4" placeholder="Description"></textarea>
+
+  <label>Widget Size</label>
+  <input type="number" value="2">
+
+  <label>Select Metric</label>
+  <select><option>Select metric</option></select>
+
+  <label>Aggregation</label>
+  <select><option>Sum</option></select>
+
+  <label>Decimal Precision</label>
+  <input type="number" value="0">
+
+  <div class="footer">
+    <button class="btn cancel" onclick="closePanel()">Cancel</button>
+    <button class="btn save" onclick="saveWidget()">Add</button>
+  </div>
+</div>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div id="backBtn" style="cursor:pointer;" onclick="goBack()" aria-label="Go back">←</div>
+  <div>
+    <h3>Configure dashboard</h3>
+    <p>Configure your dashboard to start viewing analytics</p>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="label">Show data for</div>
+    <div class="dropdown">All time ⌄</div>
+
+    <div class="label">Widget library</div>
+    <small style="color:#777;">Drag and drop your canvas</small>
+
+    <div class="section-header" onclick="toggleSection(this)">Charts <span>⌄</span></div>
+    <div class="section-content">
+      <div onclick="addCard()" class="widget-item">📊 Bar Chart</div>
+      <div onclick="addCard()" class="widget-item">📈 Line Chart</div>
+      <div onclick="addCard()" class="widget-item">⭕ Pie Chart</div>
+      <div onclick="addCard()" class="widget-item">📉 Area Chart</div>
+      <div onclick="addCard()" class="widget-item">● Scatter Plot</div>
+    </div>
+
+    <div class="section-header" onclick="toggleSection(this)">Tables <span>⌄</span></div>
+    <div class="section-content">
+      <div onclick="addCard()" class="widget-item">📄 Table</div>
+    </div>
+
+    <div class="section-header" onclick="toggleSection(this)">KPIs <span>⌄</span></div>
+    <div class="section-content">
+      <div onclick="addCard()" class="widget-item">⭐ KPI Value</div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas" id="canvas">
+    <div class="card">
+      <div class="card-title">Untitled</div>
+      <div class="card-value">0</div>
+        <div class="icon-btn delete" onclick="confirmDelete(this.parentElement)">🗑</div>
+      <div class="icon-btn settings" onclick="openPanel(this)">⚙</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer" style="padding:15px;">
+  <button class="btn cancel">Cancel</button>
+  <button class="btn save">Save</button>
+</div>
+
+<script>
+let currentCard = null;
+
+function openPanel(btn){
+  currentCard = btn.parentElement;
+  document.getElementById("widgetTitle").value =
+       currentCard.querySelector(".card-title").innerText;
+  document.getElementById("panel").classList.add("open");
+  document.getElementById("overlay").classList.add("show");
+}
+
+function closePanel(){
+  document.getElementById("panel").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+}
+
+function saveWidget(){
+  currentCard.querySelector(".card-title").innerText =
+       document.getElementById("widgetTitle").value;
+  closePanel();
+  showToast();
+}
+
+function showToast(){
+  let toast = document.getElementById("toast");
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
+
+function addCard(){
+  let card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+      <div class="card-title">Untitled</div>
+      <div class="card-value">0</div>
+      <div class="icon-btn delete" onclick="confirmDelete(this.parentElement)">🗑</div>
+      <div class="icon-btn settings" onclick="openPanel(this)">⚙</div>
+  `;
+  document.getElementById("canvas").appendChild(card);
+}
+
+// Delete confirmation modal handling
+let deleteTarget = null;
+function confirmDelete(card){
+  deleteTarget = card;
+  const title = card.querySelector('.card-title')?.innerText || 'Untitled';
+  const text = `Are you sure you want to delete the ${title} widget?`;
+  document.getElementById('deleteText').innerText = text;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.getElementById('deleteModal').classList.add('show');
+}
+
+function closeDeleteModal(){
+  deleteTarget = null;
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.getElementById('deleteModal').classList.remove('show');
+}
+
+function performDelete(){
+  if(deleteTarget){ deleteTarget.remove(); }
+  closeDeleteModal();
+}
+
+// Navigate back: prefer browser history, fallback to main.html
+function goBack(){
+  try{
+    if(window.history && window.history.length > 1){
+      window.history.back();
+    } else {
+      window.location.href = 'main.html';
+    }
+  } catch(e){
+    window.location.href = 'main.html';
+  }
+}
+
+// Toggle section collapsed state
+function toggleSection(headerEl){
+  const content = headerEl.nextElementSibling;
+  if(content && content.classList.contains('section-content')){
+    content.classList.toggle('collapsed');
+    headerEl.classList.toggle('collapsed');
+  }
+}
+</script>
+
+</body>
+</html>

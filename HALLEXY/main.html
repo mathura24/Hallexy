@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: "Inter", sans-serif;
+      background: #f8f8f8;
+    }
+    
+    .header { 
+      padding: 20px; 
+      background: white;
+      border-bottom: 1px solid #e6e6e6;
+    }
+    
+    .header h2 {
+      margin: 0; 
+      font-size: 22px;
+      font-weight: 600;
+    }
+    
+    .header p {
+      margin: 4px 0 0 0;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .controls {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      border-bottom: 1px solid #e6e6e6;
+    }
+    
+    .date-filter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .date-filter label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .date-filter select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    
+    .tabs {
+      padding: 0 20px;
+      display: flex;
+      gap: 18px;
+      background: white;
+      border-bottom: 1px solid #e6e6e6;
+    }
+    
+    .tab {
+      padding: 12px 0;
+      background: none;
+      color: #666;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    
+    .tab.active {
+      color: #0a9b48;
+      border-bottom-color: #0a9b48;
+    }
+    
+    .tab:hover {
+      color: #0a9b48;
+    }
+    
+    .dashboard-grid {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      min-height: calc(100vh - 200px);
+    }
+    
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 80px 20px;
+    }
+    
+    .empty-icon {
+      font-size: 60px;
+      opacity: 0.3;
+      margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    
+    .empty-state p {
+      color: #777;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 6px;
+      background: #2ecc71;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+    
+    .btn:hover {
+      background: #27ae60;
+    }
+    
+    .widget {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    
+    .widget-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    
+    .widget-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #0a9b48;
+      margin-bottom: 8px;
+    }
+    
+    .widget-label {
+      font-size: 12px;
+      color: #999;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+      
+      .controls {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .tabs {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .tab {
+        padding: 10px 0;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <h2>📊 Dashboard</h2>
+  <p>View your personalized dashboard analytics</p>
+</header>
+
+
+
+<nav class="tabs">
+  <button class="tab active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+  <button class="tab" onclick="switchTab('orders', this); window.location.href='table.html'">📋 Orders</button>
+</nav>
+
+<div class="dashboard-grid" id="dashboardGrid">
+  <div class="empty-state">
+    <div class="empty-icon">📈</div>
+    <h3>Dashboard Not Configured</h3>
+    <p>Start building your dashboard by adding widgets from the configuration page</p>
+    <button class="btn" onclick="window.location.href='configure-advanced.html'">
+      ⚙ Configure Dashboard
+    </button>
+  </div>
+</div>
+
+<script>
+  // Load dashboard configuration from localStorage
+  function loadDashboard() {
+    const config = localStorage.getItem('dashboardConfig');
+    const grid = document.getElementById('dashboardGrid');
+    
+    if (config) {
+      const widgets = JSON.parse(config);
+      grid.innerHTML = '';
+      
+      widgets.forEach(widget => {
+        const widgetEl = createWidgetElement(widget);
+        grid.appendChild(widgetEl);
+      });
+    }
+  }
+  
+  function createWidgetElement(widget) {
+    const div = document.createElement('div');
+    div.className = 'widget';
+    div.innerHTML = `
+      <div class="widget-title">${widget.title || 'Untitled'}</div>
+      <div class="widget-value">${widget.value || '0'}</div>
+      <div class="widget-label">${widget.label || 'No data'}</div>
+    `;
+    return div;
+  }
+  
+  function applyDateFilter() {
+    const filter = document.getElementById('dateFilter').value;
+    // Filter logic will be implemented when integrated with backend data
+    console.log('Date filter applied:', filter);
+  }
+  
+  function switchTab(tab, element) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    element.classList.add('active');
+  }
+  
+  // Load dashboard on page load
+  window.addEventListener('load', loadDashboard);
+  
+  // Listen for storage changes (when config is updated)
+  window.addEventListener('storage', loadDashboard);
+</script>
+
+</body>
+</html>
